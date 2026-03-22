@@ -18,28 +18,23 @@ export default function Login() {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
-    if (userType === 'customer') {
-      if (formData.email !== 'customer@panditconnect.com' || formData.password !== 'password123') {
-        alert('Invalid customer credentials. Use customer@panditconnect.com / password123')
-        return
+    const result = await auth.login({ 
+      email: formData.email, 
+      password: formData.password,
+      userType 
+    })
+
+    if (result.success) {
+      if (userType === 'customer') {
+        navigate('/dashboard')
+      } else {
+        navigate('/pandit-dashboard')
       }
     } else {
-      if (formData.email !== 'pandit@panditconnect.com' || formData.password !== 'password123') {
-        alert('Invalid pandit credentials. Use pandit@panditconnect.com / password123')
-        return
-      }
-    }
-
-    auth.login({ userType, email: formData.email })
-    alert(`Login successful! Redirecting to ${userType} dashboard...`)
-
-    if (userType === 'customer') {
-      navigate('/dashboard')
-    } else {
-      navigate('/pandit-dashboard')
+      alert(`Login failed: ${result.error}`)
     }
   }
 
@@ -128,10 +123,16 @@ export default function Login() {
               </Link>
             </div>
 
-            <button type="submit" className="btn-primary w-full">
-              Sign In
+            <button type="submit" className="btn-primary w-full" disabled={auth.loading}>
+              {auth.loading ? 'Signing In...' : 'Sign In'}
             </button>
           </form>
+
+          {auth.error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm">{auth.error}</p>
+            </div>
+          )}
 
           {/* Social Login */}
           <div className="mt-6">
@@ -170,8 +171,9 @@ export default function Login() {
           <div className="mt-6 p-4 bg-saffron-50 rounded-lg">
             <h3 className="font-semibold text-saffron-800 mb-2">Demo Credentials</h3>
             <div className="text-sm text-saffron-700 space-y-1">
-              <p><strong>Customer:</strong> customer@panditconnect.com / password123</p>
-              <p><strong>Pandit:</strong> pandit@panditconnect.com / password123</p>
+              <p><strong>Customer:</strong> customer@example.com / password123</p>
+              <p><strong>Pandit:</strong> pandit@example.com / password123</p>
+              <p className="text-xs mt-2">Register new accounts to create custom profiles</p>
             </div>
           </div>
         </div>

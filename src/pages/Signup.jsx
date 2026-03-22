@@ -21,7 +21,7 @@ export default function Signup() {
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault()
 
     if (formData.password !== formData.confirmPassword) {
@@ -34,13 +34,24 @@ export default function Signup() {
       return
     }
 
-    auth.register({ userType, email: formData.email })
-    alert(`Account created successfully! Welcome to PanditConnect as a ${userType}!`)
+    const result = await auth.register({
+      email: formData.email,
+      password: formData.password,
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      userType,
+      phone: formData.phone
+    })
 
-    if (userType === 'customer') {
-      navigate('/dashboard')
+    if (result.success) {
+      alert(`Account created successfully! Welcome to PanditConnect as a ${userType}!`)
+      if (userType === 'customer') {
+        navigate('/dashboard')
+      } else {
+        navigate('/pandit-onboarding')
+      }
     } else {
-      navigate('/pandit-onboarding')
+      alert(`Registration failed: ${result.error}`)
     }
   }
 
@@ -185,10 +196,16 @@ export default function Signup() {
               </label>
             </div>
 
-            <button type="submit" className="btn-primary w-full">
-              Create Account
+            <button type="submit" className="btn-primary w-full" disabled={auth.loading}>
+              {auth.loading ? 'Creating Account...' : 'Create Account'}
             </button>
           </form>
+
+          {auth.error && (
+            <div className="mt-4 p-4 bg-red-50 border border-red-200 rounded-lg">
+              <p className="text-red-700 text-sm">{auth.error}</p>
+            </div>
+          )}
 
           {/* Social Signup */}
           <div className="mt-6">
